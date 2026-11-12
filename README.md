@@ -1,1 +1,0 @@
-# JawaliWallet-Android
