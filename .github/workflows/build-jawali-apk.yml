@@ -1,4 +1,4 @@
-herename: Build Jawali Wallet APK
+name: Build Jawali Wallet APK
 
 on:
   workflow_dispatch:
