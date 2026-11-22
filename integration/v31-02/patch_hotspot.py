@@ -10,7 +10,7 @@ dst="const timeout=setTimeout(()=>{inflight.delete(id);reject(new Error('انت�
 assert s.count(src)==1
 s=s.replace(src,dst)
 start=s.index('window.jawaliActivateProfile=')
-end=s.index(';',start)+1
+end=s.index('\n',start)
 old=s[start:end]
 assert "write('/api/client/wifi-phone-login'" in old
 new="""window.jawaliActivateProfile=async id=>{
