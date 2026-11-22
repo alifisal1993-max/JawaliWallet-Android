@@ -1,0 +1,51 @@
+name: Build Jawali Wallet V31.08 APK
+on:
+  workflow_dispatch:
+  push:
+    branches: [v31.08-lan-free-access]
+    paths:
+      - 'JawaliWallet-V31.08-LAN-Free-Access-Source.zip'
+      - '.github/workflows/build-jawali-v31-08.yml'
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check V31.08 source archive
+        shell: bash
+        run: |
+          test -f JawaliWallet-V31.08-LAN-Free-Access-Source.zip || {
+            echo "::error::Upload JawaliWallet-V31.08-LAN-Free-Access-Source.zip to the root of this branch before running."
+            exit 1
+          }
+          unzip -tq JawaliWallet-V31.08-LAN-Free-Access-Source.zip
+          unzip -q JawaliWallet-V31.08-LAN-Free-Access-Source.zip -d extracted
+          test -f extracted/JawaliWallet_Android_V31_07/app/build.gradle
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK
+        uses: android-actions/setup-android@v3
+      - name: Install required SDK
+        shell: bash
+        run: |
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager --install "platforms;android-35" "build-tools;35.0.0" "platform-tools"
+      - name: Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build Android debug APK
+        run: gradle -p extracted/JawaliWallet_Android_V31_07 --no-daemon --stacktrace assembleDebug
+      - name: Upload installable APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V31.08-APK
+          path: extracted/JawaliWallet_Android_V31_07/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
