@@ -1,8 +1,8 @@
-name: Build Jawali Wallet V31.12 APK
+name: Build Jawali Wallet V31.13 APK
 on:
   workflow_dispatch:
   push:
-    branches: [v31.12-full-system-flow]
+    branches: [v31.13-hotspot-quota-fix]
     paths:
       - 'JawaliWallet-V31.08-LAN-Free-Access-Source.zip'
       - '.github/workflows/build-jawali-v31-08.yml'
@@ -10,6 +10,7 @@ on:
       - '.github/scripts/patch-v31-10.py'
       - '.github/scripts/patch-v31-11.py'
       - '.github/scripts/patch-v31-12.py'
+      - '.github/scripts/patch-v31-13.py'
 permissions:
   contents: read
 jobs:
@@ -49,6 +50,10 @@ jobs:
         run: |
           python3 .github/scripts/patch-v31-12.py
           node --check extracted/JawaliWallet_Android_V31_07/app/src/main/assets/jawali-live.js
+      - name: Apply V31.13 Hotspot and quota fix
+        run: |
+          python3 .github/scripts/patch-v31-13.py
+          node --check extracted/JawaliWallet_Android_V31_07/app/src/main/assets/jawali-live.js
       - name: Java 17
         uses: actions/setup-java@v4
         with:
@@ -83,7 +88,7 @@ jobs:
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: JawaliWallet-V31.12-APK
+          name: JawaliWallet-V31.13-APK
           path: extracted/JawaliWallet_Android_V31_07/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
