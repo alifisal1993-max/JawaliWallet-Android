@@ -150,7 +150,15 @@ jobs:
         with:
           gradle-version: '8.10.2'
       - name: Build APK from redesigned V30.93
-        run: gradle -p extracted/JawaliWallet_Android_V30_95 --no-daemon --stacktrace assembleDebug
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if gradle -p extracted/JawaliWallet_Android_V30_95 --no-daemon --stacktrace assembleDebug; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep $((attempt * 12))
+          done
       - name: Upload redesigned APK
         uses: actions/upload-artifact@v4
         with:
