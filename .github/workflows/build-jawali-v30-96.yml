@@ -113,7 +113,7 @@ jobs:
         run: |
           set -euo pipefail
           python3 integration/v30-95/patch_registration.py extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
-          grep -q 'jawali-v30-96-auth-style' extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
+          grep -q 'jawali-v30-95-auth-style' extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
           grep -q 'إنشاء حساب جديد' extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
       - name: Apply V30.96 mobile fixes
         shell: bash
