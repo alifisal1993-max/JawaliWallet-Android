@@ -1,0 +1,117 @@
+name: Build Jawali Wallet V31.01 APK
+on:
+  push:
+    branches:
+      - integration/android-v30-93-https
+    paths:
+      - .github/workflows/build-jawali-v31-01.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: Android V31.01
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract project
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q JawaliWallet_Android_V30_98_Source.zip -d extracted
+          mv extracted/JawaliWallet_Android_V30_98 extracted/JawaliWallet_Android_V31_01
+          test -f extracted/JawaliWallet_Android_V31_01/app/build.gradle
+      - name: Enable secure deposit requests only
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 integration/v30-99/enable_deposit_request.py extracted/JawaliWallet_Android_V31_01/app/src/main/assets/jawali-live.js
+      - name: Remove demo authentication overrides
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 integration/v31-00/remove_demo_auth.py extracted/JawaliWallet_Android_V31_01/app/src/main/assets/index.html
+          grep -q 'هذه الواجهة غير مدعومة' extracted/JawaliWallet_Android_V31_01/app/src/main/assets/index.html
+          if grep -q 'إرسال طلب شحن تجريبي' extracted/JawaliWallet_Android_V31_01/app/src/main/assets/index.html; then
+            echo "Demo topup still present"; exit 1
+          fi
+      - name: Integrate verified services and compact notifications
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import base64,zlib
+          from pathlib import Path
+          p=Path('integration/v31-01/patch.py.zlib.b64')
+          decoded=zlib.decompress(base64.b64decode(p.read_text(encoding='ascii')))
+          Path('/tmp/jawali-v31-01-patch.py').write_bytes(decoded)
+          print('Verified patch decoded:',len(decoded),'bytes')
+          PY
+          python3 /tmp/jawali-v31-01-patch.py extracted/JawaliWallet_Android_V31_01/app/src/main/assets/index.html extracted/JawaliWallet_Android_V31_01/app/src/main/assets/jawali-live.js
+          grep -q 'jawali-v3101-toast' extracted/JawaliWallet_Android_V31_01/app/src/main/assets/index.html
+          grep -q "call('/api/auth/register','POST'" extracted/JawaliWallet_Android_V31_01/app/src/main/assets/jawali-live.js
+      - name: Validate JavaScript
+        shell: bash
+        run: |
+          node --check extracted/JawaliWallet_Android_V31_01/app/src/main/assets/jawali-live.js
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          p=Path('extracted/JawaliWallet_Android_V31_01/app/src/main/assets/index.html')
+          source=p.read_text(encoding='utf-8')
+          scripts=re.findall(r'<script(?:\\s+[^>]*)?>(.*?)</script>',source,re.S)
+          for script in scripts:
+              if not script.strip():continue
+              with tempfile.NamedTemporaryFile(mode='w',suffix='.js',encoding='utf-8') as out:
+                  out.write(script);out.flush()
+                  subprocess.run(['node','--check',out.name],check=True)
+          print('Validated',len(scripts),'inline scripts')
+          PY
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify Android SDK
+        shell: bash
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          test -d "$SDK_ROOT/platforms/android-35"
+          test -d "$SDK_ROOT/build-tools/35.0.0"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build debug APK
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if gradle -p extracted/JawaliWallet_Android_V31_01 --no-daemon --stacktrace assembleDebug; then exit 0; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep $((attempt * 12))
+          done
+      - name: Update Android version metadata
+        shell: bash
+        run: |
+          sed -i 's/versionCode 3098; versionName "30.98"/versionCode 3101; versionName "31.01"/' extracted/JawaliWallet_Android_V31_01/app/build.gradle
+      - name: Upload new source ZIP
+        shell: bash
+        run: |
+          cd extracted
+          zip -qr ../JawaliWallet_Android_V31_01_Source.zip JawaliWallet_Android_V31_01
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V31.01-Source
+          path: JawaliWallet_Android_V31_01_Source.zip
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V31.01-APK
+          path: extracted/JawaliWallet_Android_V31_01/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
