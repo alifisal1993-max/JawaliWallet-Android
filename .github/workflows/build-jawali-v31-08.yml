@@ -24,6 +24,11 @@ jobs:
           unzip -tq JawaliWallet-V31.08-LAN-Free-Access-Source.zip
           unzip -q JawaliWallet-V31.08-LAN-Free-Access-Source.zip -d extracted
           test -f extracted/JawaliWallet_Android_V31_07/app/build.gradle
+      - name: Validate Android project files
+        shell: bash
+        run: |
+          test -f extracted/JawaliWallet_Android_V31_07/settings.gradle
+          test -f extracted/JawaliWallet_Android_V31_07/app/src/main/AndroidManifest.xml
       - name: Java 17
         uses: actions/setup-java@v4
         with:
