@@ -2,6 +2,9 @@ name: Build Jawali Wallet V30.92 APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - integration/android-v30-92
 
 permissions:
   contents: read
