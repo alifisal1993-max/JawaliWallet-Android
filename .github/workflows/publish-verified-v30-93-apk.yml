@@ -1,0 +1,35 @@
+name: Publish verified V30.93 APK
+on:
+  push:
+    branches: [integration/android-v30-93-https]
+    paths:
+      - .github/workflows/publish-verified-v30-93-apk.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+  actions: read
+jobs:
+  publish:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download APK from successful verified build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p downloaded
+          gh run download 44991665049 --repo "$GITHUB_REPOSITORY" --name "JawaliWallet-V30.93-HTTPS-APK" --dir downloaded
+          test -s downloaded/app-debug.apk
+          echo "7bfae19c0ccba3e4c042861e149eaf4d305044964d3cc4fc9ef1a470d7da35da  downloaded/app-debug.apk" | sha256sum -c -
+      - name: Publish APK into the selected branch root
+        run: |
+          set -euo pipefail
+          cp downloaded/app-debug.apk JawaliWallet_V30_93_HTTPS_Debug.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f JawaliWallet_V30_93_HTTPS_Debug.apk
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified V30.93 HTTPS debug APK"
+            git push origin HEAD:integration/android-v30-93-https
+          fi
