@@ -1,0 +1,62 @@
+name: Publish and build Jawali Wallet V30.93 APK
+on:
+  push:
+    branches: [integration/android-v30-93-https]
+    paths:
+      - integration/v30-93/**
+      - .github/workflows/publish-build-v30-93.yml
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Reconstruct checked V30.93 source ZIP
+        run: |
+          set -euo pipefail
+          python3 integration/v30-93/reconstruct.py
+          unzip -t JawaliWallet_Android_V30_93_Source.zip
+      - name: Commit V30.93 ZIP to repository root
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f JawaliWallet_Android_V30_93_Source.zip
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish verified V30.93 source ZIP"
+            git push origin HEAD:integration/android-v30-93-https
+          fi
+      - name: Extract Android project
+        run: unzip -q JawaliWallet_Android_V30_93_Source.zip -d extracted
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Android SDK preflight
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+          test -d "$SDK/platforms/android-35"
+          test -d "$SDK/build-tools/35.0.0"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build debug APK
+        run: gradle -p extracted/JawaliWallet_Android_V30_93 --no-daemon --stacktrace assembleDebug
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V30.93-HTTPS-APK
+          path: extracted/JawaliWallet_Android_V30_93/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
