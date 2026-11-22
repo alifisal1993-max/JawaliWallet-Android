@@ -1,11 +1,12 @@
-name: Build Jawali Wallet V31.08 APK
+name: Build Jawali Wallet V31.09 APK
 on:
   workflow_dispatch:
   push:
-    branches: [v31.08-lan-free-access]
+    branches: [v31.09-local-first]
     paths:
       - 'JawaliWallet-V31.08-LAN-Free-Access-Source.zip'
       - '.github/workflows/build-jawali-v31-08.yml'
+      - '.github/scripts/patch-v31-09.py'
 permissions:
   contents: read
 jobs:
@@ -29,6 +30,10 @@ jobs:
         run: |
           test -f extracted/JawaliWallet_Android_V31_07/settings.gradle
           test -f extracted/JawaliWallet_Android_V31_07/app/src/main/AndroidManifest.xml
+      - name: Apply V31.09 local-first patch
+        run: |
+          python3 .github/scripts/patch-v31-09.py
+          node --check extracted/JawaliWallet_Android_V31_07/app/src/main/assets/jawali-live.js
       - name: Java 17
         uses: actions/setup-java@v4
         with:
@@ -63,7 +68,7 @@ jobs:
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: JawaliWallet-V31.08-APK
+          name: JawaliWallet-V31.09-APK
           path: extracted/JawaliWallet_Android_V31_07/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
