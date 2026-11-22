@@ -47,7 +47,9 @@ clientAccountView=function(){
 """
 # Install inside the last existing script block, after app helpers and before closure.
 # Script globals are attached via a fresh script, AFTER main script execution: lexical vars remain accessible.
-s=s.replace('</body></html>', '<script>'+additional+'</script></body></html>',1)
+assert s.count('</body></html>') >= 1
+head, sep, tail = s.rpartition('</body></html>')
+s = head + '<script>'+additional+'</script></body></html>' + tail
 style=r"""
 /* V30.95 client auth and mobile keyboard responsiveness */
 body .jw-auth-wrapper{direction:rtl;max-width:500px;margin:10px auto 100px;padding:0 12px;color:#132d50}
