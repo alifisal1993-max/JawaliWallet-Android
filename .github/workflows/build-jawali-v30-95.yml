@@ -115,6 +115,22 @@ jobs:
           python3 integration/v30-95/patch_registration.py extracted/JawaliWallet_Android_V30_95/app/src/main/assets/index.html
           grep -q 'jawali-v30-95-auth-style' extracted/JawaliWallet_Android_V30_95/app/src/main/assets/index.html
           grep -q 'إنشاء حساب جديد' extracted/JawaliWallet_Android_V30_95/app/src/main/assets/index.html
+      - name: Validate embedded JavaScript
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          p=Path('extracted/JawaliWallet_Android_V30_95/app/src/main/assets/index.html')
+          source=p.read_text(encoding='utf-8')
+          assert source.rfind('jawaliOpenRegistration') > source.find('function clientLoginView')
+          scripts=re.findall(r'<script(?:\\s+[^>]*)?>(.*?)</script>',source,re.S)
+          for i,script in enumerate(scripts):
+              with tempfile.NamedTemporaryFile(mode='w',suffix='.js',encoding='utf-8') as out:
+                  out.write(script);out.flush()
+                  subprocess.run(['node','--check',out.name],check=True)
+          print('Checked',len(scripts),'inline JS scripts')
+          PY
       - name: Java 17
         uses: actions/setup-java@v4
         with:
