@@ -1,5 +1,10 @@
 name: Build Jawali Wallet V30.99 APK
 on:
+  push:
+    branches:
+      - integration/android-v30-93-https
+    paths:
+      - .github/workflows/build-jawali-v30-99.yml
   workflow_dispatch:
 permissions:
   contents: read
