@@ -1,4 +1,5 @@
 name: Build Jawali Wallet V31.07 APK
+# Validation correction for live client's Hotspot callback.
 # Allow initial User Manager provisioning on first phone-profile purchase.
 # Correction: release number set from V30.98 source baseline.
 # Fix one-line JS handler selection in patch step
