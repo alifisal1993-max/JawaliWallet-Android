@@ -1,0 +1,183 @@
+name: Build redesigned Jawali Wallet V30.96 APK
+on:
+  push:
+    branches:
+      - integration/android-v30-93-https
+    paths:
+      - .github/workflows/build-jawali-v30-96.yml
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract existing verified V30.93 source and apply redesign
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q JawaliWallet_Android_V30_93_Source.zip -d extracted
+          mv extracted/JawaliWallet_Android_V30_93 extracted/JawaliWallet_Android_V30_96
+          cat > /tmp/jawali-v30-96.css <<'CSS'
+          
+          /* Jawali Wallet V30.96 — mobile-first visual revision of the V30.93 application */
+          :root { --jw-accent:#0b78ec; --jw-night:#0c2d60; --jw-soft:#f3f7ff; }
+          html,body{max-width:100%!important;overflow-x:hidden!important}
+          body.clientApp{background:#f3f7ff!important;color:#142b4f!important;font-family:system-ui,"Segoe UI",Tahoma,Arial,sans-serif!important}
+          body.clientApp #content{max-width:620px!important;margin:0 auto!important}
+          body.clientApp .jw-top{background:radial-gradient(circle at 0 100%,#218ec65a,transparent 48%),linear-gradient(130deg,#09244f,#0a4386 65%,#1768ba)!important;border-radius:0 0 27px 27px!important;padding:45px 14px 27px!important}
+          body.clientApp .jw-brand{font-size:clamp(18px,5vw,22px)!important;font-weight:850!important}
+          body.clientApp .jw-head{gap:9px!important;align-items:center!important}
+          body.clientApp .jw-head-actions{gap:7px!important}
+          body.clientApp .jw-head button{max-width:44px}
+          body.clientApp .jw-greet{margin:12px 0 10px!important}
+          body.clientApp .jw-balance{background:linear-gradient(125deg,#144caa,#086ade 70%,#18a5ee)!important;border:1px solid #ffffff70!important;border-radius:18px!important;box-shadow:0 10px 20px #08377836!important;min-height:110px!important;padding:11px 15px!important}
+          body.clientApp .jw-amount{font-size:clamp(22px,7.4vw,33px)!important;margin:6px 0!important}
+          body.clientApp .jw-balance-label{font-size:12px!important}
+          body.clientApp .jw-body{max-width:620px!important;margin:-15px auto 0!important;padding:0 12px 110px!important}
+          body.clientApp .jw-quick{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;padding:7px!important;border-radius:18px!important;box-shadow:0 6px 20px #1d4f7e1a!important;background:#fff!important}
+          body.clientApp .jw-quick button{min-width:0!important;min-height:73px!important;border:0!important;border-radius:14px!important;padding:7px 2px!important;font-size:clamp(9px,2.6vw,12px)!important;line-height:1.4!important;overflow-wrap:anywhere!important}
+          body.clientApp .jw-quick button:nth-child(4n+1){background:#e5e2ff!important;color:#5540bb!important}
+          body.clientApp .jw-quick button:nth-child(4n+2){background:#d9f7f8!important;color:#077a92!important}
+          body.clientApp .jw-quick button:nth-child(4n+3){background:#ffe3ed!important;color:#b72960!important}
+          body.clientApp .jw-quick button:nth-child(4n+4){background:#daecff!important;color:#075db8!important}
+          body.clientApp .jw-quick .jw-glyph{width:33px!important;height:33px!important;margin:0 auto 4px!important}
+          body.clientApp .jw-section-title{font-size:15px!important;margin:14px 2px 9px!important}
+          body.clientApp .jw-net,body.clientApp .jw-txn,body.clientApp .jw-mini,body.clientApp .jw-banner{border-radius:18px!important;border:1px solid #e4eaf4!important;padding:13px!important;box-shadow:0 5px 15px #17466c12!important}
+          body.clientApp .jw-net h3{font-size:15px!important}
+          body.clientApp .jw-ring{width:82px!important;height:82px!important}
+          body.clientApp .jw-tiles{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:8px!important}
+          body.clientApp .jw-tiles .jw-tile{min-width:0!important;min-height:70px!important;padding:8px 3px!important;border-radius:15px!important;font-size:clamp(10px,2.5vw,12px)!important}
+          body.clientApp .jw-bottom{max-width:620px!important;margin:0 auto!important;left:0!important;right:0!important;bottom:0!important;height:auto!important;min-height:67px!important;display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;align-items:center!important;gap:0!important;padding:6px 4px max(10px,env(safe-area-inset-bottom))!important;background:#fff!important;box-shadow:0 -6px 26px #0d39751c!important;border-radius:20px 20px 0 0!important}
+          body.clientApp .jw-bottom button{min-width:0!important;width:100%!important;padding:4px 1px!important;font-size:clamp(9px,2.5vw,12px)!important;white-space:normal!important;line-height:1.25!important}
+          body.clientApp .jw-bottom button.scan{min-height:55px!important;position:relative!important;top:-10px!important}
+          body.clientApp .jw-page{padding:0 0 80px!important}
+          body.clientApp .jw-page-head{min-height:90px!important;padding:37px 16px 14px!important;border-radius:0 0 24px 24px!important;background:linear-gradient(125deg,#092d67,#106dc9)!important;color:white!important}
+          body.clientApp .jw-page-head h2{font-size:20px!important}
+          body.clientApp .jw-shop{gap:9px!important;max-width:620px!important;margin:0 auto!important}
+          body.clientApp .jw-shop-hero{border-radius:19px!important;padding:14px!important;background:linear-gradient(135deg,#0e3772,#0b69c7)!important}
+          body.clientApp .jw-shop-hero h2{font-size:18px!important;margin:7px 0!important}
+          body.clientApp .jw-shop-hero p{font-size:12px!important;line-height:1.55!important}
+          body.clientApp .jw-shop-tabs{gap:5px!important;padding:4px!important;border-radius:14px!important}
+          body.clientApp .jw-shop-tabs button{font-size:11px!important;min-height:38px!important}
+          body.clientApp .jw-shop-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+          body.clientApp .jw-shop-card{min-width:0!important;min-height:0!important;height:auto!important;max-height:none!important;padding:10px 7px!important;gap:5px!important;border-radius:14px!important;box-shadow:0 3px 10px #1a4a7b12!important}
+          body.clientApp .jw-shop-icon{width:28px!important;height:28px!important;border-radius:10px!important;font-size:17px!important}
+          body.clientApp .jw-shop-tag{font-size:8px!important;padding:3px 4px!important}
+          body.clientApp .jw-shop-card h3{font-size:clamp(12px,3.5vw,16px)!important;line-height:1.3!important;margin:3px 0!important}
+          body.clientApp .jw-shop-card p{font-size:10px!important;line-height:1.5!important}
+          body.clientApp .jw-shop-price{font-size:clamp(13px,3.8vw,18px)!important;margin-top:3px!important}
+          body.clientApp .jw-shop-meta{font-size:9px!important;line-height:1.5!important}
+          body.clientApp .jw-shop-buy{font-size:10px!important;padding:7px 3px!important;min-height:36px!important;border-radius:10px!important}
+          body.clientApp .jw-shop-card:nth-child(5n+1){background:#e9f4ff!important;border-color:#cbdff9!important}
+          body.clientApp .jw-shop-card:nth-child(5n+2){background:#e8f8f2!important;border-color:#c7ecde!important}
+          body.clientApp .jw-shop-card:nth-child(5n+3){background:#f0eaff!important;border-color:#e1d3ff!important}
+          body.clientApp .jw-shop-card:nth-child(5n+4){background:#fff0e6!important;border-color:#f4dfc8!important}
+          body.clientApp .jw-shop-card:nth-child(5n+5){background:#ffeaf1!important;border-color:#f6cedc!important}
+          body.clientApp .profileTile{min-height:0!important;padding:10px 11px!important;margin:7px 0!important;gap:5px 8px!important;border-radius:14px!important;line-height:1.5!important}
+          body.clientApp .profileTile strong{font-size:13px!important}
+          body.clientApp .profileTile span{font-size:11px!important}
+          body.clientApp .profileTile:nth-of-type(4n+1){background:#edf6ff!important}
+          body.clientApp .profileTile:nth-of-type(4n+2){background:#e8f9f2!important}
+          body.clientApp .profileTile:nth-of-type(4n+3){background:#f4edff!important}
+          body.clientApp .profileTile:nth-of-type(4n+4){background:#fff2e8!important}
+          body.clientApp input,body.clientApp select,body.clientApp textarea{max-width:100%!important;font-size:14px!important}
+          body.clientApp .jw-finance-card,body.clientApp .jw-finance-screen .panel,body.clientApp .jw-history-item{border-radius:17px!important;box-shadow:0 4px 14px #123d7112!important}
+          body.clientApp .jw-finance-hero{background:linear-gradient(120deg,#0b3777,#1178d7)!important;border-radius:18px!important;padding:15px!important}
+          body.clientApp .jw-history-list{display:grid!important;gap:9px!important}
+          body.clientApp .jw-history-item{padding:11px!important}
+          @media(max-width:330px){body.clientApp .jw-shop-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+          
+          CSS
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          base=Path('extracted/JawaliWallet_Android_V30_96')
+          p=base/'app/src/main/assets/index.html'
+          text=p.read_text(encoding='utf-8')
+          assert '</head>' in text and '</body>' in text
+          style=Path('/tmp/jawali-v30-96.css').read_text()
+          text=text.replace('</head>','<style id="jawali-v30-96-design">'+style+'</style></head>',1)
+          p.write_text(text,encoding='utf-8')
+          gradle=base/'app/build.gradle'
+          value=gradle.read_text()
+          value=re.sub(r'versionName\s+"[^"]+"','versionName "30.96"',value)
+          gradle.write_text(value)
+          assert 'jawali-v30-96-design' in p.read_text()
+          print('V30.96 design injected into actual V30.93 source')
+          PY
+      - name: Add client registration and account switching
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 integration/v30-95/patch_registration.py extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
+          grep -q 'jawali-v30-96-auth-style' extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
+          grep -q 'إنشاء حساب جديد' extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
+      - name: Apply V30.96 mobile fixes
+        shell: bash
+        run: |
+          python3 integration/v30-96/patch_mobile.py extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
+          grep -q 'jw-v3096' extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html
+      - name: Validate embedded JavaScript
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re, subprocess, tempfile
+          p=Path('extracted/JawaliWallet_Android_V30_96/app/src/main/assets/index.html')
+          source=p.read_text(encoding='utf-8')
+          assert source.rfind('jawaliOpenRegistration') > source.find('function clientLoginView')
+          scripts=re.findall(r'<script(?:\\s+[^>]*)?>(.*?)</script>',source,re.S)
+          for i,script in enumerate(scripts):
+              with tempfile.NamedTemporaryFile(mode='w',suffix='.js',encoding='utf-8') as out:
+                  out.write(script);out.flush()
+                  subprocess.run(['node','--check',out.name],check=True)
+          print('Checked',len(scripts),'inline JS scripts')
+          PY
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify preinstalled Android SDK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          test -d "$SDK_ROOT/platforms/android-35"
+          test -d "$SDK_ROOT/build-tools/35.0.0"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build APK from redesigned V30.93
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if gradle -p extracted/JawaliWallet_Android_V30_96 --no-daemon --stacktrace assembleDebug; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep $((attempt * 12))
+          done
+      - name: Upload redesigned APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V30.96-Redesign-APK
+          path: extracted/JawaliWallet_Android_V30_96/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
+      - name: Upload modified source
+        shell: bash
+        run: |
+          cd extracted
+          zip -qr ../JawaliWallet_Android_V30_96_Source.zip JawaliWallet_Android_V30_96
+      - uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V30.96-Redesign-Source
+          path: JawaliWallet_Android_V30_96_Source.zip
+          retention-days: 30
