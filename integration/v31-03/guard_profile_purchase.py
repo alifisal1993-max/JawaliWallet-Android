@@ -52,6 +52,6 @@ assert 'jawaliCheckPhoneActivation' in s
 js.write_text(s,encoding='utf-8')
 build=root/'app/build.gradle'
 b=build.read_text(encoding='utf-8')
-assert 'versionCode 3102; versionName "31.02"' in b
-build.write_text(b.replace('versionCode 3102; versionName "31.02"','versionCode 3103; versionName "31.03"'),encoding='utf-8')
+assert 'versionCode 3098; versionName "30.98"' in b
+build.write_text(b.replace('versionCode 3098; versionName "30.98"','versionCode 3103; versionName "31.03"'),encoding='utf-8')
 print('V31.03: preflight checks active phone entitlement; prevents repeated purchase of existing profile.')
