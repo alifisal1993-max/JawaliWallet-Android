@@ -67,7 +67,7 @@ j=j.replace(old,new,1)
 # Warn if reach status with no evidence; never claim connected just from URL.
 assert 'session-time-left' in j
 # App still uses branded consumption display.
-assert 'function toast' in s
+assert 'jawaliHotspotState' in s
 java.write_text(j,encoding='utf-8')
 b=root/'app/build.gradle'
 t=b.read_text(encoding='utf-8')
