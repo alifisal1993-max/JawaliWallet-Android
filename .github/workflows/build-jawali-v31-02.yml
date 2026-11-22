@@ -1,4 +1,5 @@
 name: Build Jawali Wallet V31.02 APK
+# Fix one-line JS handler selection in patch step
 on:
   push:
     branches:
