@@ -60,3 +60,17 @@ jobs:
           path: extracted/JawaliWallet_Android_V30_93/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
+      - name: Publish installable APK to repository branch
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK="extracted/JawaliWallet_Android_V30_93/app/build/outputs/apk/debug/app-debug.apk"
+          test -s "$APK"
+          cp "$APK" JawaliWallet_V30_93_HTTPS_Debug.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f JawaliWallet_V30_93_HTTPS_Debug.apk
+          if ! git diff --cached --quiet; then
+            git commit -m "Publish installable V30.93 HTTPS debug APK"
+            git push origin HEAD:integration/android-v30-93-https
+          fi
