@@ -1,27 +1,33 @@
-
-name: Build Jawali Wallet APK V30.89
+name: Build Jawali Wallet V30.92 APK
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - integration/android-v30-92
 
 permissions:
   contents: read
 
 jobs:
   build:
-    name: Build Android APK
+    name: Compile Android V30.92
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 35
 
     steps:
-      - name: Checkout repository
+      - name: Checkout integration branch
         uses: actions/checkout@v4
 
-      - name: Extract Android project
+      - name: Decode V30.92 source archive
         shell: bash
         run: |
-          unzip -q JawaliWallet_Android_V30_89_Source.zip -d extracted
-          test -f extracted/JawaliWallet_Android_V30_89/app/build.gradle
+          set -euo pipefail
+          base64 -d release-assets/JawaliWallet_Android_V30_92_Source.zip.base64 > source.zip
+          unzip -tq source.zip
+          unzip -q source.zip -d extracted
+          test -f extracted/JawaliWallet_Android_V30_92/app/build.gradle
+          test -f extracted/JawaliWallet_Android_V30_92/app/src/main/assets/jawali-live.js
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -29,60 +35,45 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Configure Android SDK
+      - name: Check Android SDK and required packages
         shell: bash
         run: |
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> "$GITHUB_ENV"
-
-          test -d "$ANDROID_HOME" || exit 1
-
-          echo "Available Android SDK platforms:"
-          ls -la "$ANDROID_HOME/platforms" || true
-
-          echo "Available build tools:"
-          ls -la "$ANDROID_HOME/build-tools" || true
-
-      - name: Install required Android SDK packages
-        shell: bash
-        run: |
-          SDKMANAGER="$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager"
-
-          if [ ! -x "$SDKMANAGER" ]; then
-            SDKMANAGER=$(find "$ANDROID_HOME/cmdline-tools" \
-              -type f -name sdkmanager | head -n 1)
+          set -euo pipefail
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "Using Android SDK: $SDK_ROOT"
+          if [ ! -d "$SDK_ROOT/platforms/android-35" ] || [ ! -d "$SDK_ROOT/build-tools/35.0.0" ]; then
+            SDK_MANAGER="$SDK_ROOT/cmdline-tools/latest/bin/sdkmanager"
+            if [ ! -x "$SDK_MANAGER" ]; then
+              SDK_MANAGER="$(find "$SDK_ROOT/cmdline-tools" -type f -name sdkmanager -print -quit)"
+            fi
+            test -x "$SDK_MANAGER" || { echo "Android SDK manager unavailable"; exit 1; }
+            yes | "$SDK_MANAGER" --sdk_root="$SDK_ROOT" --licenses >/dev/null || true
+            "$SDK_MANAGER" --sdk_root="$SDK_ROOT" --install "platforms;android-35" "build-tools;35.0.0" "platform-tools"
           fi
-
-          if [ -z "$SDKMANAGER" ] || [ ! -x "$SDKMANAGER" ]; then
-            echo "Android SDK manager not found"
-            exit 1
-          fi
-
-          yes | "$SDKMANAGER" --licenses > /dev/null || true
-
-          "$SDKMANAGER" --install \
-            "platform-tools" \
-            "platforms;android-35" \
-            "build-tools;35.0.0"
+          test -d "$SDK_ROOT/platforms/android-35"
+          test -d "$SDK_ROOT/build-tools/35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
 
+      - name: Validate JavaScript sources
+        shell: bash
+        run: |
+          node --check extracted/JawaliWallet_Android_V30_92/app/src/main/assets/jawali-live.js
+
       - name: Build debug APK
         shell: bash
         run: |
-          gradle \
-            -p extracted/JawaliWallet_Android_V30_89 \
-            --no-daemon \
-            --stacktrace \
-            assembleDebug
+          gradle -p extracted/JawaliWallet_Android_V30_92 --no-daemon --stacktrace assembleDebug
 
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: JawaliWallet-V30.89-APK
-          path: extracted/JawaliWallet_Android_V30_89/app/build/outputs/apk/debug/*.apk
+          name: JawaliWallet-V30.92-debug-APK
+          path: extracted/JawaliWallet_Android_V30_92/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
