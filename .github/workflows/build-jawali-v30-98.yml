@@ -1,0 +1,54 @@
+name: Build Jawali Wallet V30.98 APK
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  build:
+    name: Android V30.98
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract project
+        shell: bash
+        run: |
+          set -euo pipefail
+          unzip -q JawaliWallet_Android_V30_98_Source.zip -d extracted
+          test -f extracted/JawaliWallet_Android_V30_98/app/build.gradle
+      - name: Validate JavaScript
+        shell: bash
+        run: |
+          node --check extracted/JawaliWallet_Android_V30_98/app/src/main/assets/jawali-live.js
+      - name: Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Verify Android SDK
+        shell: bash
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-${ANDROID_HOME:-/usr/local/lib/android/sdk}}"
+          test -d "$SDK_ROOT/platforms/android-35"
+          test -d "$SDK_ROOT/build-tools/35.0.0"
+          echo "ANDROID_HOME=$SDK_ROOT" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK_ROOT" >> "$GITHUB_ENV"
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build debug APK
+        shell: bash
+        run: |
+          for attempt in 1 2 3; do
+            if gradle -p extracted/JawaliWallet_Android_V30_98 --no-daemon --stacktrace assembleDebug; then exit 0; fi
+            if [ "$attempt" -eq 3 ]; then exit 1; fi
+            sleep $((attempt * 12))
+          done
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JawaliWallet-V30.98-APK
+          path: extracted/JawaliWallet_Android_V30_98/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error
+          retention-days: 30
