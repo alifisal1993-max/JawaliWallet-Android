@@ -9,9 +9,14 @@ replacement="""let preflight;
   preflight=await call('/api/client/wifi-phone-quota');
  } catch (err) {
   const msg=errorText(err);
-  if(!confirm('تعذّر التحقق من حالة بروفايل الهاتف على User Manager: '+msg+
-    '\\\\nقد يكون هناك تفعيل سابق لم يكتمل إشعاره. لن تتم إعادة الشراء تلقائيًا. هل تريد متابعة مراجعة الطلب فقط؟'))return;
-  toast('تحقق من حالة الباقة عبر الإدارة قبل أي شراء جديد');return;
+  // A newly registered customer may have no User Manager phone account yet.
+  // The backend creates it on the first successful purchase; only this 404 is safe.
+  if(err?.status===404 && /مستخدم رقم الهاتف غير موجود/.test(msg)){
+   preflight={quota:{}};
+  } else {
+   toast('تعذّر التحقق من حالة الباقة: '+msg+'؛ راجع الإدارة قبل إعادة الشراء');
+   return;
+  }
  }
  const q=preflight?.quota||{};
  const matches=String(q.packageName||q.profile||'').trim()===String(p.name).trim();
