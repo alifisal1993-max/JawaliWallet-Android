@@ -85,6 +85,10 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.10.2'
+      - name: Update Android version metadata
+        shell: bash
+        run: |
+          sed -i 's/versionCode 3098; versionName "30.98"/versionCode 3101; versionName "31.01"/' extracted/JawaliWallet_Android_V31_01/app/build.gradle
       - name: Build debug APK
         shell: bash
         run: |
@@ -93,10 +97,6 @@ jobs:
             if [ "$attempt" -eq 3 ]; then exit 1; fi
             sleep $((attempt * 12))
           done
-      - name: Update Android version metadata
-        shell: bash
-        run: |
-          sed -i 's/versionCode 3098; versionName "30.98"/versionCode 3101; versionName "31.01"/' extracted/JawaliWallet_Android_V31_01/app/build.gradle
       - name: Upload new source ZIP
         shell: bash
         run: |
