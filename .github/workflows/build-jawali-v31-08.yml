@@ -1,8 +1,8 @@
-name: Build Jawali Wallet V31.19 APK
+name: Build Jawali Wallet V31.20 APK
 on:
   workflow_dispatch:
   push:
-    branches: [v31.19-mac-independent-session]
+    branches: [v31.20-native-captive-handler]
     paths:
       - 'JawaliWallet-V31.08-LAN-Free-Access-Source.zip'
       - '.github/workflows/build-jawali-v31-08.yml'
@@ -17,6 +17,7 @@ on:
       - '.github/scripts/patch-v31-17.py'
       - '.github/scripts/patch-v31-18.py'
       - '.github/scripts/patch-v31-19.py'
+      - '.github/scripts/patch-v31-20.py'
 permissions:
   contents: read
 jobs:
@@ -84,6 +85,10 @@ jobs:
         run: |
           python3 .github/scripts/patch-v31-19.py
           node --check extracted/JawaliWallet_Android_V31_07/app/src/main/assets/jawali-live.js
+      - name: Apply V31.20 native captive portal handler
+        run: |
+          python3 .github/scripts/patch-v31-20.py
+          node --check extracted/JawaliWallet_Android_V31_07/app/src/main/assets/jawali-live.js
       - name: Java 17
         uses: actions/setup-java@v4
         with:
@@ -118,7 +123,7 @@ jobs:
       - name: Upload installable APK
         uses: actions/upload-artifact@v4
         with:
-          name: JawaliWallet-V31.19-APK
+          name: JawaliWallet-V31.20-APK
           path: extracted/JawaliWallet_Android_V31_07/app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
           retention-days: 30
