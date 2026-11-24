@@ -94,7 +94,7 @@ m.write_text(s,encoding="utf-8")
 p=r/"app/src/main/assets/jawali-live.js"
 s=p.read_text(encoding="utf-8")
 assert s.endswith('})();\n')
-s=s[:-5]+'''// Wi-Fi captive prompt only navigates; never purchases a package.
+s=s[:-6]+'''// Wi-Fi captive prompt only navigates; never purchases a package.
 window.jawaliOpenWifiFromSystem=function(){
  try{
   go('client');
