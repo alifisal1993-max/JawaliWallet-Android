@@ -97,7 +97,7 @@ needle='  @Override protected void onResume(){super.onResume();foreground=true;}
 assert needle in s
 s=s.replace(needle,'''  @Override protected void onResume(){
     super.onResume();foreground=true;
-    if(captiveObserved)showWifiSection();
+    if(pendingWifiEntry)showWifiSection();
   }''')
 j.write_text(s,encoding='utf-8')
 
