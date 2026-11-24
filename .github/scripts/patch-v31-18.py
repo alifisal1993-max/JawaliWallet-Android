@@ -10,7 +10,9 @@ window.jawaliOpenWifiFromSystem=function(){
   else status('اتصلت بشبكة Wi-Fi. سجّل الدخول إلى المحفظة لإكمال دخول الشبكة');
  }catch(e){console.warn('Wi-Fi navigation unavailable',e)}
 };"""
-assert old in s, 'WiFi hook missing'
+start=s.index('window.jawaliOpenWifiFromSystem=function(){')
+finish=s.index('\\n};',start)+3
+old=s[start:finish]
 new="""// Restore device-bound server session without storing customer passwords.
 // This is the same /api/auth/device-session contract as Full-System.
 let restoringDeviceSession=false, lastSessionAttempt=0;
@@ -52,7 +54,7 @@ window.jawaliOpenWifiFromSystem=async function(){
   status(msg);
  }
 };"""
-s=s.replace(old,new)
+s=s[:start]+new+s[finish:]
 needle="clientLoginView=function(){\n const reg=liveAuthMode==='register';"
 assert needle in s
 s=s.replace(needle,"clientLoginView=function(){\n if(restoringDeviceSession)return '<section class=\"lv-auth-shell\" dir=\"rtl\"><div class=\"lv-auth-hero\"><h1>جوالي محفظتي</h1><p>جارٍ التعرف على الهاتف وفتح استهلاك الباقة…</p></div><p class=\"lv-note\" id=\"live-status\" role=\"status\"></p></section>';\n const reg=liveAuthMode==='register';")
