@@ -11,7 +11,7 @@ window.jawaliOpenWifiFromSystem=function(){
  }catch(e){console.warn('Wi-Fi navigation unavailable',e)}
 };"""
 start=s.index('window.jawaliOpenWifiFromSystem=function(){')
-finish=s.index('\\n};',start)+3
+finish=s.index(chr(10)+'};',start)+3
 old=s[start:finish]
 new="""// Restore device-bound server session without storing customer passwords.
 // This is the same /api/auth/device-session contract as Full-System.
