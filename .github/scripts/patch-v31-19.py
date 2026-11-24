@@ -73,7 +73,10 @@ async function walletWifiEntry(shouldAuthenticate){
    status('تعذّر استعادة اتصال الهاتف: '+errorText(e));
   }
   if(!liveUser){go('client');render();}
- }finally{restoringDeviceSession=false;}
+ }finally{
+  restoringDeviceSession=false;
+  if(!liveUser)render();
+ }
 }
 window.jawaliOpenWifiFromSystem=()=>walletWifiEntry(true);
 // Expose an explicit manual retry that NEVER purchases or renews a package.
